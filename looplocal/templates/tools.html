@@ -1,1 +1,135 @@
-{% extends 'base.html' %}{% block title %}Tool library{% endblock %}{% block crumb %}Tool library{% endblock %}{% block content %}<div class="page-heading"><div><p class="eyebrow">OWN LESS. DO MORE.</p><h1>A little library of possibility</h1><p>The right tool, just when you need it. Borrow locally for up to 7 days.</p></div><span class="outline-tag">SHARE THE TOOLS. SHARE THE POSSIBILITIES.</span></div><div class="notice">Reserve online, collect at the community hub. Staff record collection and return. A reservation is for one copy; collection and return dates are inclusive. If a tool is returned late, contact the hub before your visit.</div><form class="filter-bar" method="get"><label class="search">Find a tool<input type="search" name="q" value="{{ q }}" placeholder="Try a drill, sewing machine or bicycle stand…"></label><button class="button secondary">Search</button></form><div class="repair-grid">{% for t in tools %}<article class="panel tool-card"><div class="tool-illustration cat-{{ loop.index%3 }}"><span>{{ categories[t.category][1] }}</span><b>{{ t.category }}</b></div><div class="tool-content"><div class="card-top"><h2>{{ t.name }}</h2><span class="badge">{{ t.total }} {{ 'copy' if t.total==1 else 'copies' }}</span></div><p>{{ t.description }}</p><div class="card-meta">⌖ {{ t.area }}</div><details><summary>Reserve this tool <span>＋</span></summary><form method="post" action="{{ url_for('reserve',tool_id=t.id) }}">{{ token() }}<div class="two-grid"><label>Collect on<input type="date" name="start" required min="{{ today }}" value="{{ today }}"></label><label>Return by<input type="date" name="end" required min="{{ today }}" value="{{ today }}"></label></div><p class="form-hint">Availability is checked when you reserve. One copy per reservation.</p><button class="button full">Confirm reservation ↗</button></form></details></div></article>{% else %}<section class="panel full-width">{{ empty('No tools found','Try another search. New shared tools are added by the community hub.') }}</section>{% endfor %}</div><section class="panel detail-panel"><div class="section-caption"><h2>{{ 'Community borrowing desk' if g.user.role=='admin' else 'Your borrowing history' }}</h2><span class="outline-tag">RESERVE → COLLECT → RETURN</span></div>{% if loans %}<div class="table-wrap"><table><thead><tr><th>Tool</th>{% if g.user.role=='admin' %}<th>Borrower</th>{% endif %}<th>Collection → return</th><th>Status</th><th>Next step</th></tr></thead><tbody>{% for l in loans %}<tr><td><strong>{{ l.name }}</strong><small>#{{ l.id }}</small></td>{% if g.user.role=='admin' %}<td>{{ l.borrower }}</td>{% endif %}<td>{{ l.start }} → {{ l.end }}{% if l.end<today and l.status=='collected' %}<small class="danger-text">Overdue · contact the hub</small>{% endif %}</td><td>{{ badge(l.status) }}</td><td>{% if l.status=='reserved' %}<div class="button-row">{% if g.user.role=='admin' %}<form method="post" action="{{ url_for('loan_status',loan_id=l.id) }}">{{ token() }}<input type="hidden" name="status" value="collected"><button class="button small">Check out</button></form>{% endif %}<form method="post" action="{{ url_for('loan_status',loan_id=l.id) }}">{{ token() }}<input type="hidden" name="status" value="cancelled"><button class="button small secondary">Cancel</button></form></div>{% elif l.status=='collected' and g.user.role=='admin' %}<form method="post" action="{{ url_for('loan_status',loan_id=l.id) }}">{{ token() }}<input type="hidden" name="status" value="returned"><button class="button small">Record return</button></form>{% else %}—{% endif %}</td></tr>{% endfor %}</tbody></table></div>{% else %}{{ empty('Your next project is waiting','Reserve a shared tool above and your borrowing journey will appear here.') }}{% endif %}</section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Tool library{% endblock %}
+{% block crumb %}Tool library{% endblock %}
+{% block content %}
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">OWN LESS. DO MORE.</p>
+            <h1>A little library of possibility</h1>
+            <p>The right tool, just when you need it. Borrow locally for up to 7 days.</p>
+        </div>
+        <span class="outline-tag">SHARE THE TOOLS. SHARE THE POSSIBILITIES.</span>
+    </div>
+    <div class="notice">
+        Reserve online, collect at the community hub. Staff record collection and return. A reservation is for one copy; collection and return dates are inclusive. If a tool is returned late, contact the hub before your visit.
+    </div>
+    <form class="filter-bar" method="get">
+        <label class="search">
+            Find a tool
+            <input type="search"
+                   name="q"
+                   value="{{ q }}"
+                   placeholder="Try a drill, sewing machine or bicycle stand…">
+        </label>
+        <button class="button secondary">Search</button>
+    </form>
+    <div class="repair-grid">
+        {% for t in tools %}
+            <article class="panel tool-card">
+                <div class="tool-illustration cat-{{ loop.index%3 }}">
+                    <span>{{ categories[t.category][1] }}</span><b>{{ t.category }}</b>
+                </div>
+                <div class="tool-content">
+                    <div class="card-top">
+                        <h2>{{ t.name }}</h2>
+                        <span class="badge">{{ t.total }} {{ 'copy' if t.total==1 else 'copies' }}</span>
+                    </div>
+                    <p>{{ t.description }}</p>
+                    <div class="card-meta">⌖ {{ t.area }}</div>
+                    <details>
+                        <summary>
+                            Reserve this tool <span>＋</span>
+                        </summary>
+                        <form method="post" action="{{ url_for('reserve',tool_id=t.id) }}">
+                            {{ token() }}
+                            <div class="two-grid">
+                                <label>
+                                    Collect on
+                                    <input type="date"
+                                           name="start"
+                                           required
+                                           min="{{ today }}"
+                                           value="{{ today }}">
+                                </label>
+                                <label>
+                                    Return by
+                                    <input type="date" name="end" required min="{{ today }}" value="{{ today }}">
+                                </label>
+                            </div>
+                            <p class="form-hint">Availability is checked when you reserve. One copy per reservation.</p>
+                            <button class="button full">Confirm reservation ↗</button>
+                        </form>
+                    </details>
+                </div>
+            </article>
+        {% else %}
+            <section class="panel full-width">
+                {{ empty('No tools found', 'Try another search. New shared tools are added by the community hub.') }}
+            </section>
+        {% endfor %}
+    </div>
+    <section class="panel detail-panel">
+        <div class="section-caption">
+            <h2>{{ 'Community borrowing desk' if g.user.role=='admin' else 'Your borrowing history' }}</h2>
+            <span class="outline-tag">RESERVE → COLLECT → RETURN</span>
+        </div>
+        {% if loans %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tool</th>
+                            {% if g.user.role=='admin' %}<th>Borrower</th>{% endif %}
+                            <th>Collection → return</th>
+                            <th>Status</th>
+                            <th>Next step</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for l in loans %}
+                            <tr>
+                                <td>
+                                    <strong>{{ l.name }}</strong><small>#{{ l.id }}</small>
+                                </td>
+                                {% if g.user.role=='admin' %}<td>{{ l.borrower }}</td>{% endif %}
+                                <td>
+                                    {{ l.start }} → {{ l.end }}
+                                    {% if l.end<today and l.status=='collected' %}<small class="danger-text">Overdue · contact the hub</small>{% endif %}
+                                </td>
+                                <td>{{ badge(l.status) }}</td>
+                                <td>
+                                    {% if l.status=='reserved' %}
+                                        <div class="button-row">
+                                            {% if g.user.role=='admin' %}
+                                                <form method="post" action="{{ url_for('loan_status',loan_id=l.id) }}">
+                                                    {{ token() }}
+                                                    <input type="hidden" name="status" value="collected">
+                                                    <button class="button small">Check out</button>
+                                                </form>
+                                            {% endif %}
+                                            <form method="post" action="{{ url_for('loan_status',loan_id=l.id) }}">
+                                                {{ token() }}
+                                                <input type="hidden" name="status" value="cancelled">
+                                                <button class="button small secondary">Cancel</button>
+                                            </form>
+                                        </div>
+                                    {% elif l.status=='collected' and g.user.role=='admin' %}
+                                        <form method="post" action="{{ url_for('loan_status',loan_id=l.id) }}">
+                                            {{ token() }}
+                                            <input type="hidden" name="status" value="returned">
+                                            <button class="button small">Record return</button>
+                                        </form>
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            {{ empty('Your next project is waiting', 'Reserve a shared tool above and your borrowing journey will appear here.') }}
+        {% endif %}
+    </section>
+{% endblock %}

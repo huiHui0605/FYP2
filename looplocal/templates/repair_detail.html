@@ -1,3 +1,164 @@
-{% extends 'base.html' %}{% block title %}{{ ticket.title }}{% endblock %}{% block crumb %}Repair record{% endblock %}{% block content %}<a class="back-link" href="{{ url_for('repairs') }}">← Back to the repair bench</a><div class="page-heading"><div><p class="eyebrow">ITEM #LL-{{ '%04d'|format(ticket.id) }} · {{ ticket.category }}</p><h1>{{ ticket.title }}</h1><p>{{ ticket.area }} · Opened {{ ticket.created|date }}</p></div>{{ badge(ticket.status) }}</div><div class="form-layout"><div><section class="panel detail-panel"><div class="section-caption"><h2>The story so far</h2><span class="item-icon">{{ categories[ticket.category][1] }}</span></div><p class="preserve">{{ ticket.description }}</p><dl class="detail-grid"><div><dt>Owner</dt><dd>{{ ticket.owner }}</dd></div><div><dt>Repair partner</dt><dd>{{ ticket.fixer or 'Looking for a match' }}</dd></div><div><dt>Item weight</dt><dd>{{ ticket.weight }} kg (estimated)</dd></div><div><dt>Safety check</dt><dd>{{ 'Initial inspection needed' if ticket.safety=='unsure' else 'No hazards reported' }}</dd></div></dl>{% if ticket.priority=='essential' %}<p class="notice">This item is a daily essential for its owner.</p>{% endif %}{% if ticket.status=='open' and g.user.role=='fixer' and ticket.owner_id!=g.user.id %}<form method="post" action="{{ url_for('claim',ticket_id=ticket.id) }}">{{ token() }}<p class="form-hint">Only claim repairs within your skills. Maximum three active repairs per volunteer.</p><button class="button">I can help repair this ↗</button></form>{% endif %}{% if ticket.status=='repaired' %}<div class="passport-banner"><span>↻</span><div><strong>A second life, documented.</strong><p>Your public passport contains no names, address or private notes.</p><a href="{{ url_for('passport',code=ticket.public_code) }}">Open item passport ↗</a></div></div>{% endif %}</section>
-{% if transitions and (g.user.role=='admin' or g.user.id in [ticket.owner_id,ticket.fixer_id]) %}<section class="panel detail-panel"><h2>Move this repair forward</h2><form method="post" action="{{ url_for('repair_status',ticket_id=ticket.id) }}">{{ token() }}<label>Next step<select name="status">{% for s in transitions %}{% if s=='cancelled' or g.user.role=='admin' or g.user.id==ticket.fixer_id %}<option value="{{ s }}">{{ s|replace('_',' ')|capitalize }}</option>{% endif %}{% endfor %}</select></label><label>Repair notes / reason<textarea name="note" rows="3" required minlength="5" maxlength="1000" placeholder="What was done? What checks were performed? At least 20 characters to complete a repair."></textarea></label><button class="button">Update record</button></form></section>{% endif %}
-{% if g.user.role=='admin' or g.user.id in [ticket.owner_id,ticket.fixer_id] %}<section class="panel detail-panel"><h2>A conversation around the repair</h2><p class="form-hint">Visible only to the owner, assigned volunteer and administrators.</p><div class="messages">{% for m in messages %}<article class="message"><div><strong>{{ m.name }}</strong><small>{{ m.created|date }}</small></div><p class="preserve">{{ m.body }}</p></article>{% else %}<p class="muted">No messages yet. Start with a hello and a question.</p>{% endfor %}</div><form method="post" action="{{ url_for('message',ticket_id=ticket.id) }}">{{ token() }}<label>Your message<textarea name="body" rows="3" required maxlength="1500" placeholder="Write a message…"></textarea></label><button class="button secondary">Send message ↗</button></form></section>{% endif %}</div><aside>{% if matches %}<section class="panel detail-panel"><p class="eyebrow">EXPLAINABLE MATCHING</p><h2>Good people for this repair</h2><p class="form-hint">Skills 60 · Neighbourhood 25 · Availability 15. Suggestions are self-declared, not endorsements. Volunteers choose which repairs to accept.</p>{% for m in matches %}<div class="match"><div><strong>{{ m.user.name }}</strong><b>{{ m.score }}<small>/100</small></b></div><p>{{ '✓ Matching skill' if m.skill else '○ Different skills' }}<br>{{ '✓ Same neighbourhood' if m.local else '○ '+m.user.area }}<br>{{ m.user.workload }} of 3 active repair slots</p></div>{% endfor %}</section>{% endif %}<section class="panel detail-panel"><p class="eyebrow">THE ITEM'S JOURNEY</p><h2>Repair timeline</h2><ol class="timeline">{% for h in history %}<li><span class="timeline-dot"></span><strong>{{ h.status|replace('_',' ')|capitalize }}</strong><p>{{ h.note }}</p><small>{{ h.name }} · {{ h.created|date }}</small></li>{% endfor %}</ol></section></aside></div>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}{{ ticket.title }}{% endblock %}
+{% block crumb %}Repair record{% endblock %}
+{% block content %}
+    <a class="back-link" href="{{ url_for('repairs') }}">← Back to the repair bench</a>
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">ITEM #LL-{{ '%04d'|format(ticket.id) }} · {{ ticket.category }}</p>
+            <h1>{{ ticket.title }}</h1>
+            <p>{{ ticket.area }} · Opened {{ ticket.created|date }}</p>
+        </div>
+        {{ badge(ticket.status) }}
+    </div>
+    <div class="form-layout">
+        <div>
+            <section class="panel detail-panel">
+                <div class="section-caption">
+                    <h2>The story so far</h2>
+                    <span class="item-icon">{{ categories[ticket.category][1] }}</span>
+                </div>
+                <p class="preserve">{{ ticket.description }}</p>
+                <dl class="detail-grid">
+                    <div>
+                        <dt>Owner</dt>
+                        <dd>
+                            {{ ticket.owner }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt>Repair partner</dt>
+                        <dd>
+                            {{ ticket.fixer or 'Looking for a match' }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt>Item weight</dt>
+                        <dd>
+                            {{ ticket.weight }} kg (estimated)
+                        </dd>
+                    </div>
+                    <div>
+                        <dt>Safety check</dt>
+                        <dd>
+                            {{ 'Initial inspection needed' if ticket.safety=='unsure' else 'No hazards reported' }}
+                        </dd>
+                    </div>
+                </dl>
+                {% if ticket.priority=='essential' %}<p class="notice">This item is a daily essential for its owner.</p>{% endif %}
+                {% if ticket.status=='open' and g.user.role=='fixer' and ticket.owner_id!=g.user.id %}
+                    <form method="post" action="{{ url_for('claim',ticket_id=ticket.id) }}">
+                        {{ token() }}
+                        <p class="form-hint">Only claim repairs within your skills. Maximum three active repairs per volunteer.</p>
+                        <button class="button">I can help repair this ↗</button>
+                    </form>
+                {% endif %}
+                {% if ticket.status=='repaired' %}
+                    <div class="passport-banner">
+                        <span>↻</span>
+                        <div>
+                            <strong>A second life, documented.</strong>
+                            <p>Your public passport contains no names, address or private notes.</p>
+                            <a href="{{ url_for('passport',code=ticket.public_code) }}">Open item passport ↗</a>
+                        </div>
+                    </div>
+                {% endif %}
+            </section>
+            {% if transitions and (g.user.role=='admin' or g.user.id in [ticket.owner_id,ticket.fixer_id]) %}
+                <section class="panel detail-panel">
+                    <h2>Move this repair forward</h2>
+                    <form method="post"
+                          action="{{ url_for('repair_status',ticket_id=ticket.id) }}">
+                        {{ token() }}
+                        <label>
+                            Next step
+                            <select name="status">
+                                {% for s in transitions %}
+                                    {% if s=='cancelled' or g.user.role=='admin' or g.user.id==ticket.fixer_id %}
+                                        <option value="{{ s }}">{{ s|replace('_', ' ') |capitalize }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <label>
+                            Repair notes / reason<textarea name="note"
+          rows="3"
+          required
+          minlength="5"
+          maxlength="1000"
+          placeholder="What was done? What checks were performed? At least 20 characters to complete a repair."></textarea>
+                        </label>
+                        <button class="button">Update record</button>
+                    </form>
+                </section>
+            {% endif %}
+            {% if g.user.role=='admin' or g.user.id in [ticket.owner_id,ticket.fixer_id] %}
+                <section class="panel detail-panel">
+                    <h2>A conversation around the repair</h2>
+                    <p class="form-hint">Visible only to the owner, assigned volunteer and administrators.</p>
+                    <div class="messages">
+                        {% for m in messages %}
+                            <article class="message">
+                                <div>
+                                    <strong>{{ m.name }}</strong><small>{{ m.created|date }}</small>
+                                </div>
+                                <p class="preserve">{{ m.body }}</p>
+                            </article>
+                        {% else %}
+                            <p class="muted">No messages yet. Start with a hello and a question.</p>
+                        {% endfor %}
+                    </div>
+                    <form method="post" action="{{ url_for('message',ticket_id=ticket.id) }}">
+                        {{ token() }}
+                        <label>
+                            Your message<textarea name="body"
+          rows="3"
+          required
+          maxlength="1500"
+          placeholder="Write a message…"></textarea>
+                        </label>
+                        <button class="button secondary">Send message ↗</button>
+                    </form>
+                </section>
+            {% endif %}
+        </div>
+        <aside>
+            {% if matches %}
+                <section class="panel detail-panel">
+                    <p class="eyebrow">EXPLAINABLE MATCHING</p>
+                    <h2>Good people for this repair</h2>
+                    <p class="form-hint">
+                        Skills 60 · Neighbourhood 25 · Availability 15. Suggestions are self-declared, not endorsements. Volunteers choose which repairs to accept.
+                    </p>
+                    {% for m in matches %}
+                        <div class="match">
+                            <div>
+                                <strong>{{ m.user.name }}</strong><b>{{ m.score }}<small>/100</small></b>
+                            </div>
+                            <p>
+                                {{ '✓ Matching skill' if m.skill else '○ Different skills' }}
+                                <br>
+                                {{ '✓ Same neighbourhood' if m.local else '○ '+m.user.area }}
+                                <br>
+                                {{ m.user.workload }} of 3 active repair slots
+                            </p>
+                        </div>
+                    {% endfor %}
+                </section>
+            {% endif %}
+            <section class="panel detail-panel">
+                <p class="eyebrow">THE ITEM'S JOURNEY</p>
+                <h2>Repair timeline</h2>
+                <ol class="timeline">
+                    {% for h in history %}
+                        <li>
+                            <span class="timeline-dot"></span><strong>{{ h.status|replace('_', ' ') |capitalize }}</strong>
+                            <p>{{ h.note }}</p>
+                            <small>{{ h.name }} · {{ h.created|date }}</small>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </section>
+        </aside>
+    </div>
+{% endblock %}

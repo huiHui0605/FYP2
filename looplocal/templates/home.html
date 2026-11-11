@@ -1,1 +1,53 @@
-{% extends 'base.html' %}{% block title %}Good things deserve another chapter{% endblock %}{% block content %}<section class="landing"><p class="eyebrow">YOUR NEIGHBOURHOOD. A LITTLE MORE CIRCULAR.</p><h1>Repair what you love.<br>Share what you have.<br><em>Keep good things going.</em></h1><p>Connect with local repair skills, borrow the tools you need,<br>and give everyday things an extraordinary second life.</p><div class="button-row"><a class="button" href="{{ url_for('register') }}">Find your community ↗</a><a class="button secondary" href="{{ url_for('login') }}">I'm already in the loop</a></div><div class="landing-loop" aria-hidden="true">↻<span>✳</span></div></section><div class="stats-grid"><article class="stat-card"><strong>{{ stats.repaired }}</strong><h3>Things repaired</h3></article><article class="stat-card"><strong>{{ stats.waste }} kg</strong><h3>Estimated waste avoided</h3></article><article class="stat-card"><strong>{{ stats.volunteers }}</strong><h3>Repair neighbours</h3></article><article class="stat-card"><strong>12.5</strong><h3>Our SDG target</h3></article></div><div class="three-grid landing-features">{% for num,title,body in [('01','Find your repair person','Describe what needs a little care. Discover neighbours with the right skills, nearby and ready to help.'),('02','Borrow a little possibility','A drill for one afternoon. A sewing machine for a fresh start. Reserve shared tools instead of buying new.'),('03','See the life you extended','Follow every repair from first hello to a shareable item passport. See what our community keeps in use.')] %}<section class="panel"><span class="eyebrow">{{ num }} / KEEP IT CIRCULAR</span><h2>{{ title }}</h2><p>{{ body }}</p></section>{% endfor %}</div><div class="bottom-note"><span>✳</span><p><strong>Built around UN Sustainable Development Goal 12.</strong><br>Reduce waste through prevention, reduction, repair and reuse. All demo impact is illustrative.</p></div>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Good things deserve another chapter{% endblock %}
+{% block content %}
+    <section class="landing">
+        <p class="eyebrow">YOUR NEIGHBOURHOOD. A LITTLE MORE CIRCULAR.</p>
+        <h1>
+            Repair what you love.
+            <br>
+            Share what you have.
+            <br>
+            <em>Keep good things going.</em>
+        </h1>
+        <p>
+            Connect with local repair skills, borrow the tools you need,
+            <br>
+            and give everyday things an extraordinary second life.
+        </p>
+        <div class="button-row">
+            <a class="button" href="{{ url_for('register') }}">Find your community ↗</a><a class="button secondary" href="{{ url_for('login') }}">I'm already in the loop</a>
+        </div>
+        <div class="landing-loop" aria-hidden="true">
+            ↻<span>✳</span>
+        </div>
+    </section>
+    <div class="stats-grid">
+        <article class="stat-card"><strong>{{ stats.repaired }}</strong>
+            <h3>Things repaired</h3>
+            </article><article class="stat-card"><strong>{{ stats.waste }} kg</strong>
+            <h3>Estimated waste avoided</h3>
+            </article><article class="stat-card"><strong>{{ stats.volunteers }}</strong>
+            <h3>Repair neighbours</h3>
+            </article><article class="stat-card"><strong>12.5</strong>
+            <h3>Our SDG target</h3>
+        </article>
+    </div>
+    <div class="three-grid landing-features">
+        {% for num,title,body in [('01','Find your repair person','Describe what needs a little care. Discover neighbours with the right skills, nearby and ready to help.'),('02','Borrow a little possibility','A drill for one afternoon. A sewing machine for a fresh start. Reserve shared tools instead of buying new.'),('03','See the life you extended','Follow every repair from first hello to a shareable item passport. See what our community keeps in use.')] %}
+            <section class="panel">
+                <span class="eyebrow">{{ num }} / KEEP IT CIRCULAR</span>
+                <h2>{{ title }}</h2>
+                <p>{{ body }}</p>
+            </section>
+        {% endfor %}
+    </div>
+    <div class="bottom-note">
+        <span>✳</span>
+        <p>
+            <strong>Built around UN Sustainable Development Goal 12.</strong>
+            <br>
+            Reduce waste through prevention, reduction, repair and reuse. All demo impact is illustrative.
+        </p>
+    </div>
+{% endblock %}

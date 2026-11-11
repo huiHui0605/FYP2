@@ -1,2 +1,9 @@
 /* Local symbol fallback; DejaVu license is shipped alongside the font. No external requests. */
-@font-face{font-family:'Loop Symbols';src:url('fonts/DejaVuSans.ttf') format('truetype');font-style:normal;font-weight:100 900;font-display:swap;unicode-range:U+2190-21FF,U+2300-23FF,U+2500-25FF,U+2600-26FF}
+@font-face {
+  font-family: "Loop Symbols";
+  src: url("fonts/DejaVuSans.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+2190-21FF, U+2300-23FF, U+2500-25FF, U+2600-26FF;
+}

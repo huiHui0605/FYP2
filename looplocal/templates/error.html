@@ -1,1 +1,13 @@
-{% extends 'base.html' %}{% block title %}{{ code }} · Let's try again{% endblock %}{% block content %}<section class="panel error-panel"><span class="eyebrow">A SMALL DETOUR</span><strong class="error-code">{{ code }}</strong><h1>{{ 'That needs a little adjustment' if code==422 else 'Let’s get you back in the loop' }}</h1><p>{{ message }}</p><div class="button-row"><button class="button" id="go-back">← Go back</button><a class="button secondary" href="{{ url_for('home') }}">Back to LoopLocal</a></div></section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}{{ code }} · Let's try again{% endblock %}
+{% block content %}
+    <section class="panel error-panel">
+        <span class="eyebrow">A SMALL DETOUR</span><strong class="error-code">{{ code }}</strong>
+        <h1>{{ 'That needs a little adjustment' if code==422 else 'Let’s get you back in the loop' }}</h1>
+        <p>{{ message }}</p>
+        <div class="button-row">
+            <button class="button" id="go-back">← Go back</button>
+            <a class="button secondary" href="{{ url_for('home') }}">Back to LoopLocal</a>
+        </div>
+    </section>
+{% endblock %}
